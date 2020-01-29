@@ -23,12 +23,8 @@
       </el-steps>
 
       <!-- 下方面板 -->
-      <el-tabs
-        class="tabs"
-        :tab-position="tabPosition"
-        v-model="activeName"
-        :before-leave="leaveTab"
-      >
+      <el-tabs :tab-position="tabPosition" v-model="activeName" @tab-click="handleClick">
+        <!-- :before-leave="leaveTab" -->
         <el-tab-pane label="基本信息" name="first">
           <!-- 选项卡第一页表单 -->
           <el-form
@@ -67,15 +63,32 @@
         </el-tab-pane>
         <el-tab-pane label="动态参数" name="second">动态参数</el-tab-pane>
         <el-tab-pane label="静态参数" name="third">静态参数</el-tab-pane>
-        <el-tab-pane label="商品图片" name="fourth">商品图片</el-tab-pane>
-        <el-tab-pane label="商品内容" name="fifth">商品内容</el-tab-pane>
+        <el-tab-pane label="商品图片" name="fourth">
+          <!-- 图片上传 -->
+          <el-upload action="https://jsonplaceholder.typicode.com/posts/" list-type="picture">
+            <el-button size="small" type="primary">点击上传</el-button>
+            <div slot="tip" class="el-upload__tip">只能上传jpg/png文件，且不超过500kb</div>
+          </el-upload>
+        </el-tab-pane>
+        <el-tab-pane label="商品内容" name="fifth">
+          <quill-editor
+            v-model="content"
+            ref="myQuillEditor"
+            :options="editorOption"
+          ></quill-editor>
+        </el-tab-pane>
       </el-tabs>
     </div>
   </div>
 </template>
 
 <script>
+import { quillEditor } from 'vue-quill-editor'
+import 'quill/dist/quill.snow.css' // 调用富文本编辑器
 export default {
+  components: {
+    quillEditor
+  },
   data () {
     return {
       tabPosition: 'left',
@@ -102,7 +115,13 @@ export default {
         ]
       },
       value: [],
-      CascaderList: []
+      CascaderList: [],
+      //  富文本编辑器配置
+      editorOption: {
+        theme: 'snow',
+        placeholder: '请输入正文'
+      },
+      content: ''
     }
   },
   created () {
@@ -110,21 +129,36 @@ export default {
   },
   methods: {
     // 选项卡触发逻辑
-    leaveTab (activeName) {
-      if (activeName !== 'first') {
-        this.validateForm()
-        if (!this.validresult) {
-          return false
-        }
+    // leaveTab (activeName) {
+    //   if (activeName !== 'first') {
+    //     this.validateForm()
+    //     if (!this.validresult) {
+    //       return false
+    //     }
+    //   }
+    // },
+    handleClick () {
+      if (this.activeName === 'first') {
+        this.active = 0
+      }
+      if (this.activeName === 'second') {
+        this.active = 1
+      }
+      if (this.activeName === 'third') {
+        this.active = 2
+      }
+      if (this.activeName === 'fourth') {
+        this.active = 3
+      }
+      if (this.activeName === 'fifth') {
+        this.active = 4
       }
     },
     // 第一项表单校验
     validateForm (activeName) {
       this.$refs['ruleForm'].validate(valid => {
         this.validresult = valid
-        if (valid) {
-          alert('submit!')
-        } else {
+        if (!valid) {
           this.$message.error('请先填写基本信息')
           return valid
         }
@@ -136,10 +170,7 @@ export default {
       var { data: dt } = await this.$http.get('categories', {
         params: { type: 3 }
       })
-      //   console.log(dt)
-      // 把获得到的分类列表数据赋予给catList成员
       this.CascaderList = dt.data
-
       this.CascaderList.forEach(item => {
         item.value = item.cat_pid
         item.label = item.cat_name
@@ -156,7 +187,6 @@ export default {
           })
         }
       })
-      console.log(this.CascaderList)
     }
   }
 }
@@ -170,8 +200,6 @@ export default {
     background-color: #fff;
     .steps {
       margin: 20px;
-    }
-    .tabs {
     }
   }
 }
