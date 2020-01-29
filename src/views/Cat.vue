@@ -16,7 +16,10 @@
        <el-table
     :data="tableData"
     border
-    style="width: 100%">
+    style="width: 100%"
+    row-key="cat_id"
+    :tree-props="{children: 'children', hasChildren: 'hasChildren'}">
+    >
     <el-table-column
       prop="cat_name"
       label="分类名称"
