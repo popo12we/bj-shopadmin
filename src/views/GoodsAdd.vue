@@ -37,13 +37,13 @@
               <el-input v-model="ruleForm.name"></el-input>
             </el-form-item>
             <el-form-item label="价格" prop="price">
-              <el-input v-model="ruleForm.price"></el-input>
+              <el-input v-model.number="ruleForm.price"></el-input>
             </el-form-item>
             <el-form-item label="重量" prop="weight">
-              <el-input v-model="ruleForm.weight"></el-input>
+              <el-input v-model.number="ruleForm.weight"></el-input>
             </el-form-item>
             <el-form-item label="数量" prop="num">
-              <el-input v-model="ruleForm.num"></el-input>
+              <el-input v-model.number="ruleForm.num"></el-input>
             </el-form-item>
             <el-form-item label="商品类型" prop="selectThreeCat">
               <el-cascader
@@ -114,9 +114,18 @@ export default {
       // 表单校验规则
       rules: {
         name: [{ required: true, message: '请输入名称', trigger: 'blur' }],
-        price: [{ required: true, message: '请输入价格', trigger: 'blur' }],
-        weight: [{ required: true, message: '请输入重量', trigger: 'blur' }],
-        num: [{ required: true, message: '请输入数量', trigger: 'blur' }],
+        price: [
+          { required: true, message: '请输入价格' },
+          { type: 'number', message: '必须是数字', trigger: ['blur', 'change'] }
+        ],
+        weight: [
+          { required: true, message: '请输入重量' },
+          { type: 'number', message: '必须是数字' }
+        ],
+        num: [
+          { required: true, message: '请输入数量' },
+          { type: 'number', message: '必须是数字' }
+        ],
         selectThreeCat: [
           { required: true, message: '请选择类型', trigger: 'change' }
         ]
@@ -176,7 +185,7 @@ export default {
       this.$refs['ruleForm'].validate(valid => {
         this.validresult = valid
         if (!valid) {
-          this.$message.error('请先填写基本信息')
+          this.$message.error('请按要求填写基本信息')
           return valid
         }
       })
@@ -223,7 +232,6 @@ export default {
         goods_introduce: this.content,
         pics: this.imgList
       })
-      console.log(res.data)
       if (res.data.meta.msg === '创建商品成功') {
         this.$router.push('/goods')
       }
