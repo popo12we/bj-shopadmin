@@ -13,17 +13,60 @@
       </el-row>
 
      <!-- 表格 -->
+       <el-table
+    :data="tableData"
+    border
+    style="width: 100%">
+    <el-table-column
+      prop="cat_name"
+      label="分类名称"
+      min-width="180">
+    </el-table-column>
+    <el-table-column
+      prop="name"
+      label="等级">
+       <template>
+          <el-tag size="medium">一级</el-tag>
+      </template>
+    </el-table-column>
+    <el-table-column
+      prop="address"
+      label="操作">
+      <template>
+          <el-button type="primary" icon="el-icon-edit" size="mini">修改</el-button>
+          <el-button type="danger" icon="el-icon-delete" size="mini">删除</el-button>
+      </template>
+    </el-table-column>
+  </el-table>
     </el-card>
   </div>
 </template>
 
 <script>
 export default {
-  created () {},
-  methods: {
-  },
   data () {
     return {
+      // 表格数据
+      tableData: []
+    }
+  },
+  created () {
+    this.getTableData()
+  },
+  methods: {
+    // 拿到表格数据
+    async getTableData () {
+      let { data } = await this.$http.get('categories', {
+        params: {
+          type: 3,
+          pagenum: 1,
+          pagesize: 5
+        }
+      })
+      if (data.meta.status === 200) {
+        this.tableData = data.data.result
+        console.log(this.tableData)
+      }
     }
   }
 }
