@@ -19,7 +19,6 @@
         style="width: 100%"
         row-key="cat_id"
         :tree-props="{children: 'children', hasChildren: 'hasChildren'}"
-        @expand-change="toggleRowExpansion"
       >
         <el-table-column prop="cat_name" label="分类名称" min-width="180"></el-table-column>
         <el-table-column prop="name" label="等级">
@@ -52,10 +51,6 @@ export default {
     this.getTableData()
   },
   methods: {
-    toggleRowExpansion (row, expanded) {
-      console.log(row)
-      console.log(expanded)
-    },
     // 拿到表格数据
     async getTableData () {
       let { data } = await this.$http.get('categories', {
