@@ -23,8 +23,7 @@
       </el-steps>
 
       <!-- 下方面板 -->
-      <el-tabs :tab-position="tabPosition" v-model="activeName" @tab-click="handleClick">
-        <!-- :before-leave="leaveTab" -->
+      <el-tabs :tab-position="tabPosition" :before-leave="leaveTab" v-model="activeName" @tab-click="handleClick">
         <el-tab-pane label="基本信息" name="first">
           <!-- 选项卡第一页表单 -->
           <el-form
@@ -37,7 +36,7 @@
             <el-form-item label="名称" prop="name">
               <el-input v-model="ruleForm.name"></el-input>
             </el-form-item>
-            <el-form-item label="名称" prop="price">
+            <el-form-item label="价格" prop="price">
               <el-input v-model="ruleForm.price"></el-input>
             </el-form-item>
             <el-form-item label="重量" prop="weight">
@@ -65,17 +64,24 @@
         <el-tab-pane label="静态参数" name="third">静态参数</el-tab-pane>
         <el-tab-pane label="商品图片" name="fourth">
           <!-- 图片上传 -->
-          <el-upload action="https://jsonplaceholder.typicode.com/posts/" list-type="picture">
+          <el-upload
+          :headers="uploadHeaders"
+          action="http://127.0.0.1:11333/api/private/v1/upload"
+           list-type="picture"
+           :on-success="handleAvatarSuccess"
+           >
             <el-button size="small" type="primary">点击上传</el-button>
             <div slot="tip" class="el-upload__tip">只能上传jpg/png文件，且不超过500kb</div>
           </el-upload>
         </el-tab-pane>
         <el-tab-pane label="商品内容" name="fifth">
+          <!-- 富文本 -->
           <quill-editor
             v-model="content"
             ref="myQuillEditor"
             :options="editorOption"
           ></quill-editor>
+          <el-button type="primary" @click="submit">添加</el-button>
         </el-tab-pane>
       </el-tabs>
     </div>
@@ -91,6 +97,7 @@ export default {
   },
   data () {
     return {
+      token: sessionStorage.getItem('token'),
       tabPosition: 'left',
       // 进度条控制进度
       active: 0,
@@ -121,7 +128,11 @@ export default {
         theme: 'snow',
         placeholder: '请输入正文'
       },
-      content: ''
+      content: '',
+      uploadHeaders: {
+        Authorization: window.sessionStorage.getItem('token')
+      },
+      imgList: []
     }
   },
   created () {
@@ -129,14 +140,15 @@ export default {
   },
   methods: {
     // 选项卡触发逻辑
-    // leaveTab (activeName) {
-    //   if (activeName !== 'first') {
-    //     this.validateForm()
-    //     if (!this.validresult) {
-    //       return false
-    //     }
-    //   }
-    // },
+    leaveTab (activeName) {
+      if (activeName !== 'first') {
+        this.validateForm()
+        if (!this.validresult) {
+          return false
+        }
+      }
+    },
+    // 选项卡切换事件
     handleClick () {
       if (this.activeName === 'first') {
         this.active = 0
@@ -154,6 +166,11 @@ export default {
         this.active = 4
       }
     },
+    // 级联选中
+    handleChange (value) {
+      this.ruleForm.selectThreeCat = value.join(',')
+      console.log(this.ruleForm.selectThreeCat)
+    },
     // 第一项表单校验
     validateForm (activeName) {
       this.$refs['ruleForm'].validate(valid => {
@@ -167,7 +184,7 @@ export default {
     },
     // 拿到级联数据
     async getCascaderList () {
-      var { data: dt } = await this.$http.get('categories', {
+      let { data: dt } = await this.$http.get('categories', {
         params: { type: 3 }
       })
       this.CascaderList = dt.data
@@ -187,6 +204,29 @@ export default {
           })
         }
       })
+    },
+    // 图片上传完触发的事件
+    handleAvatarSuccess (res, file) {
+      // this.imageUrl = URL.createObjectURL(file.raw)
+      console.log(res)
+      console.log(file)
+      this.imgList.push(res.data.tmp_path)
+    },
+    // 点击按钮发送请求
+    async submit () {
+      let res = await this.$http.post('goods', {
+        goods_name: this.ruleForm.name,
+        goods_cat: this.ruleForm.selectThreeCat,
+        goods_price: this.ruleForm.price,
+        goods_number: this.ruleForm.num,
+        goods_weight: this.ruleForm.weight,
+        goods_introduce: this.content,
+        pics: this.imgList
+      })
+      console.log(res.data)
+      if (res.data.meta.msg === '创建商品成功') {
+        this.$router.push('/goods')
+      }
     }
   }
 }
